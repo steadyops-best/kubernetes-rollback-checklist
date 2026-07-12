@@ -31,13 +31,15 @@ This repository keeps the reusable artifact separate from the longer explanatory
 3. Replace `APP`, `RELEASE`, namespaces, owners, thresholds, and business-flow checks.
 4. Confirm database migration compatibility before relying on application rollback.
 5. Test pause, rollback, traffic removal, and validation in stage or another production-like environment.
-6. Store the completed checklist with the deployment evidence.
+6. Complete [`rollback-evidence-template.md`](rollback-evidence-template.md) after an exercise or production rollback.
+7. Store the completed checklist and evidence record with the deployment or incident evidence.
 
 ## Repository contents
 
 | File | Purpose |
 |---|---|
 | [`checklist.md`](checklist.md) | Compact release and rollback checklist with Kubernetes, Helm, and Argo Rollouts commands. |
+| [`rollback-evidence-template.md`](rollback-evidence-template.md) | Timestamped decision, compatibility, command, signal, customer-flow, and follow-up record. |
 | [`CITATION.cff`](CITATION.cff) | Citation metadata for internal standards, research notes, and derived runbooks. |
 | [`LICENSE`](LICENSE) | MIT license for reuse and adaptation. |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Rules for safe, practical improvements. |
