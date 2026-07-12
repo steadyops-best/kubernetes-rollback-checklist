@@ -1,188 +1,107 @@
 # Kubernetes Rollback Checklist
 
-A practical Kubernetes rollback checklist for production deployments.
+A forkable production rollback package for Kubernetes, Helm, and Argo Rollouts. It helps teams decide **when** to stop a release, **whether** rollback is safe, **who** owns the decision, and **how** to prove that customer-facing service has recovered.
 
-Use it when a rollout creates customer impact, error rates increase, p99 latency degrades, pods crash, queues grow, or the deployment cannot be validated within the agreed window.
+- Canonical implementation guide: https://steadyops.best/articles/kubernetes-rollback-checklist-for-production-deployments/
+- Kubernetes production-readiness guide: https://steadyops.best/articles/kubernetes-production-readiness-checklist/
+- SteadyOps resource library: https://steadyops.best/resources/
+- License: MIT
+- Artifact version: 1.0.0
+- Repository reviewed: 2026-07-12
 
-## What this checklist is for
+## Why this repository exists
 
-Kubernetes makes rollback commands available, but it does not decide whether rollback is safe. A production rollback still needs context:
+`kubectl rollout undo` is a command, not a recovery strategy. A safe rollback also depends on:
 
-- what changed
-- which revision is healthy
-- whether database migrations are compatible
-- whether old and new pods can coexist
-- whether traffic is still routed to bad pods
-- which metrics decide rollback success
+- a known previous image, chart, or rollout revision;
+- backward-compatible database and message changes;
+- readiness that represents real serving ability;
+- traffic no longer reaching failed or terminating pods;
+- observable error, latency, saturation, queue, and database signals;
+- a named deployment owner and rollback owner;
+- a technical smoke test plus a real business transaction;
+- retained release and incident evidence.
 
-## Before you roll back
+This repository keeps the reusable artifact separate from the longer explanatory article so teams can fork it, version it, cite it, and adapt it to their own release process.
 
-Do not start with `kubectl rollout undo` until these checks are clear.
+## Start here
 
-```md
-## Kubernetes rollback readiness
+1. Open [`checklist.md`](checklist.md).
+2. Copy it into the release repository, change ticket, runbook system, or internal documentation space.
+3. Replace `APP`, `RELEASE`, namespaces, owners, thresholds, and business-flow checks.
+4. Confirm database migration compatibility before relying on application rollback.
+5. Test pause, rollback, traffic removal, and validation in stage or another production-like environment.
+6. Store the completed checklist with the deployment evidence.
 
-Service:
-Namespace:
-Deployment:
-Current revision:
-Candidate rollback revision:
-Deployment owner:
-Rollback owner:
-Incident channel:
+## Repository contents
 
-### Impact
-- [ ] Customer-facing impact is confirmed.
-- [ ] Error rate, p95/p99 latency and request rate are visible.
-- [ ] Queue depth and background worker status are visible.
-- [ ] Database connection pressure is visible.
-- [ ] Recent deployment or config change is identified.
+| File | Purpose |
+|---|---|
+| [`checklist.md`](checklist.md) | Compact release and rollback checklist with Kubernetes, Helm, and Argo Rollouts commands. |
+| [`CITATION.cff`](CITATION.cff) | Citation metadata for internal standards, research notes, and derived runbooks. |
+| [`LICENSE`](LICENSE) | MIT license for reuse and adaptation. |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Rules for safe, practical improvements. |
 
-### Safety
-- [ ] Previous image or Helm revision exists.
-- [ ] Previous version can run with the current database schema.
-- [ ] Feature flags or config changes are compatible.
-- [ ] No irreversible migration is still running.
-- [ ] Rollback owner is available.
-- [ ] Validation path is defined.
+## Rollback decision model
 
-### Routing
-- [ ] Readiness checks are working.
-- [ ] Failing pods are not receiving traffic.
-- [ ] Ingress or service endpoints point to healthy pods after rollback.
-- [ ] HorizontalPodAutoscaler behavior is understood.
-- [ ] PodDisruptionBudget will not block recovery.
-```
+A rollback decision should answer four questions in order:
 
-## Rollback decision criteria
+### 1. Is there material impact?
 
-Rollback if one or more conditions are true:
+Examples include sustained 5xx errors, unacceptable p95/p99 latency, broken login or checkout, growing queue backlog, database saturation, repeated pod failure, or a rollout that cannot complete inside the agreed decision window.
 
-- 5xx error rate exceeds the agreed threshold.
-- p99 latency is more than 2x normal baseline.
-- Pods are in CrashLoopBackOff and cannot recover quickly.
-- Queue depth grows and does not drain.
-- Database connections saturate after the release.
-- A critical user flow is broken.
-- Authentication or authorization is broken.
-- The rollout cannot finish within the rollback decision window.
+### 2. Is the previous version safe to run now?
 
-## Kubernetes commands
+Confirm that the artifact still exists and that the current database schema, feature flags, queue messages, secrets, and external contracts remain compatible.
 
-Set variables first:
+### 3. Can traffic be removed from the bad version?
 
-```bash
-NS=production
-DEPLOYMENT=my-service
-```
+Readiness, Service endpoints, ingress or load-balancer health, connection draining, and progressive-delivery state must agree. A pod being alive does not mean it should receive traffic.
 
-Inspect rollout:
+### 4. How will recovery be proven?
 
-```bash
-kubectl -n "$NS" rollout status deployment/"$DEPLOYMENT"
-kubectl -n "$NS" rollout history deployment/"$DEPLOYMENT"
-kubectl -n "$NS" describe deployment "$DEPLOYMENT"
-kubectl -n "$NS" get pods -l app="$DEPLOYMENT" -o wide
-```
+Validate both technical signals and the critical customer journey. A green rollout status alone is not recovery evidence.
 
-Pause a rollout while investigating:
+## Minimum evidence to retain
 
-```bash
-kubectl -n "$NS" rollout pause deployment/"$DEPLOYMENT"
-```
+- release version, image digest, chart or rollout revision;
+- deployment and rollback owners;
+- trigger metric and decision timestamp;
+- commands executed and their results;
+- database migration compatibility decision;
+- traffic and endpoint state;
+- error, latency, saturation, queue, and database observations;
+- customer-facing transaction result;
+- follow-up actions with owners and deadlines.
 
-Rollback to the previous revision:
+## Safety boundaries
 
-```bash
-kubectl -n "$NS" rollout undo deployment/"$DEPLOYMENT"
-kubectl -n "$NS" rollout status deployment/"$DEPLOYMENT"
-```
+This project is a starting point, not an automated production action.
 
-Rollback to a specific revision:
+- Review every command before execution.
+- Never roll back application code across an incompatible destructive migration.
+- Preserve incident evidence before deleting failed pods or changing infrastructure aggressively.
+- Do not retry non-idempotent requests blindly during partial failure.
+- Confirm that the rollback target has not been removed from the registry.
+- Use environment-specific thresholds derived from real baselines and SLOs.
+- Keep secrets, private topology, customer data, and internal endpoints out of public forks.
 
-```bash
-kubectl -n "$NS" rollout undo deployment/"$DEPLOYMENT" --to-revision=3
-kubectl -n "$NS" rollout status deployment/"$DEPLOYMENT"
-```
-
-Resume rollout if rollback is not needed:
-
-```bash
-kubectl -n "$NS" rollout resume deployment/"$DEPLOYMENT"
-```
-
-## Helm rollback
-
-```bash
-NS=production
-RELEASE=my-release
-
-helm -n "$NS" history "$RELEASE"
-helm -n "$NS" rollback "$RELEASE" 12
-kubectl -n "$NS" get pods -w
-```
-
-## Argo Rollouts
-
-```bash
-NS=production
-ROLLOUT=my-service
-
-kubectl argo rollouts -n "$NS" get rollout "$ROLLOUT"
-kubectl argo rollouts -n "$NS" abort "$ROLLOUT"
-kubectl argo rollouts -n "$NS" promote "$ROLLOUT"
-```
-
-## Validate after rollback
-
-- [ ] Service returns HTTP 200 on health and customer-facing endpoints.
-- [ ] Error rate returns to baseline.
-- [ ] p99 latency returns to acceptable range.
-- [ ] Pod restarts stop increasing.
-- [ ] Queue depth drains.
-- [ ] Database connections stabilize.
-- [ ] Logs do not show the original failure.
-- [ ] Ingress or service endpoints point to healthy pods.
-- [ ] Main user flow works.
-- [ ] Monitoring remains normal for at least 10-15 minutes.
-
-## Common rollback mistakes
-
-- Rolling back app code while keeping an incompatible database migration.
-- Assuming the previous image still exists in the registry.
-- Rolling back before pausing a broken progressive rollout.
-- Ignoring background workers and async queues.
-- Treating readiness probes as proof that business flows work.
-- Letting the load balancer keep traffic on terminating or failed pods.
-- Not documenting the rollback revision and reason.
-
-## Post-incident notes
-
-Record:
-
-- bad version
-- rollback version
-- trigger metric
-- customer impact
-- command used
-- validation result
-- follow-up task owner
-- what should be automated before the next release
-
-## SteadyOps resources
-
-- Website: https://steadyops.best/
-- DevOps/SRE articles: https://steadyops.best/articles/
-- LinkedIn: https://www.linkedin.com/in/yuri-osipov-0876b0254
-- Related article: https://steadyops.best/articles/kubernetes-rollback-checklist-for-production-deployments/
-- Zero-downtime deployments: https://steadyops.best/articles/zero-downtime-bluegreen-deployments/
-- Kubernetes production readiness: https://steadyops.best/articles/kubernetes-production-readiness/
-
-## Related public checklists
+## Related SteadyOps resources
 
 - Zero-downtime deployment checklist: https://github.com/steadyops-best/zero-downtime-deployment-checklist
 - Disaster recovery runbook template: https://github.com/steadyops-best/disaster-recovery-runbook-template
+- Kubernetes observability for SRE teams: https://steadyops.best/articles/kubernetes-observability-best-practices-for-sre-teams/
+- Zero-downtime Blue/Green deployments: https://steadyops.best/articles/zero-downtime-bluegreen-deployments/
+- Production reliability cases: https://steadyops.best/reliability-cases/
+
+## Citation
+
+GitHub can render the repository citation from [`CITATION.cff`](CITATION.cff). When adapting the checklist internally, retain a reference to the source repository and the canonical implementation guide so future maintainers can review changes and context.
+
+## Contributing
+
+Corrections and practical additions are welcome when they explain the failure mode, preserve safe placeholders, include validation, and avoid vendor marketing or unsupported claims. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
-MIT License. Use, adapt and improve this checklist for your own Kubernetes deployment process.
+MIT. Use, adapt, and improve the checklist for your own Kubernetes release process. Production use remains the responsibility of the team applying it.
