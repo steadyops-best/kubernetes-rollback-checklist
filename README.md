@@ -2,9 +2,9 @@
 
 A forkable production rollback package for Kubernetes, Helm, and Argo Rollouts. It helps teams decide **when** to stop a release, **whether** rollback is safe, **who** owns the decision, and **how** to prove that customer-facing service has recovered.
 
-- Canonical implementation guide: https://steadyops.best/articles/kubernetes-rollback-checklist-for-production-deployments/
-- Kubernetes production-readiness guide: https://steadyops.best/articles/kubernetes-production-readiness-checklist/
-- SteadyOps resource library: https://steadyops.best/resources/
+- [Kubernetes rollback implementation guide](https://steadyops.best/articles/kubernetes-rollback-checklist-for-production-deployments/)
+- [Kubernetes production readiness checklist](https://steadyops.best/articles/kubernetes-production-readiness-checklist/)
+- [SteadyOps reliability resources](https://steadyops.best/resources/)
 - License: MIT
 - Artifact version: 1.0.0
 - Repository reviewed: 2026-07-12
@@ -90,11 +90,10 @@ This project is a starting point, not an automated production action.
 
 ## Related SteadyOps resources
 
-- Zero-downtime deployment checklist: https://github.com/steadyops-best/zero-downtime-deployment-checklist
-- Disaster recovery runbook template: https://github.com/steadyops-best/disaster-recovery-runbook-template
-- Kubernetes observability for SRE teams: https://steadyops.best/articles/kubernetes-observability-best-practices-for-sre-teams/
-- Zero-downtime Blue/Green deployments: https://steadyops.best/articles/zero-downtime-bluegreen-deployments/
-- Production reliability cases: https://steadyops.best/reliability-cases/
+- [Zero-downtime deployment checklist](https://github.com/steadyops-best/zero-downtime-deployment-checklist)
+- [Disaster recovery runbook template](https://github.com/steadyops-best/disaster-recovery-runbook-template)
+- [Kubernetes observability for SRE teams](https://steadyops.best/articles/kubernetes-observability-best-practices-for-sre-teams/)
+- [Zero-downtime Blue/Green deployment guide](https://steadyops.best/articles/zero-downtime-bluegreen-deployments/)
 
 ## Citation
 
