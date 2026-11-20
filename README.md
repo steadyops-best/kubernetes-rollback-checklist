@@ -34,6 +34,8 @@ This repository keeps the reusable artifact separate from the longer explanatory
 6. Complete [`rollback-evidence-template.md`](rollback-evidence-template.md) after an exercise or production rollback.
 7. Store the completed checklist and evidence record with the deployment or incident evidence.
 
+If maintenance or node loss can overlap with releases, plan a [Kubernetes node-drain drill](https://steadyops.best/articles/kubernetes-production-readiness-checklist/#run-a-node-drain-test-before-launch). Check that capacity and disruption budgets let pods recover while your customer request still succeeds, then record the result with the rollback evidence.
+
 ## Repository contents
 
 | File | Purpose |
