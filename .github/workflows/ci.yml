@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Package tested kit
         run: |
-          tar -czf kubernetes-rollback-kit.tar.gz README.md checklist.md rollback-evidence-template.md tools LICENSE CITATION.cff
+          tar -czf kubernetes-rollback-kit.tar.gz README.md USAGE.md docs checklist.md rollback-evidence-template.md tools LICENSE CITATION.cff
           sha256sum kubernetes-rollback-kit.tar.gz > kubernetes-rollback-kit.tar.gz.sha256
       - uses: softprops/action-gh-release@v2
         with:
